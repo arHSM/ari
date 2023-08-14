@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   sandbox:
+    container_name: evalbot_sandbox
     tty: true
     build:
       context: .

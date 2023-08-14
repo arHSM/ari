@@ -9,7 +9,7 @@ from subprocess import PIPE, Popen
 from time import perf_counter
 from typing import IO, Any, Callable, Match
 
-CONTAINER = "ari_sandbox"
+CONTAINER = "evalbot_sandbox"
 BASE_COMMAND = [
     "docker",
     "exec",
