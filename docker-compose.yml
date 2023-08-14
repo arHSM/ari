@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  evalbot-sandbox:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Limit resources
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: 0.50
+          memory: 128M
+    # Disable unnecessary features
+    network_mode: none
+    pid: none
+    ipc: none
+    user: 1000:1000
+    cap_drop:
+      - dac_override
+      - fowner
+      - setgid
+      - setuid
+      - net_bind_service
+      - net_raw
+      - sys_chroot
+      - mknod
+      - audit_write
+      - setfcap
+    security_opt:
+      - no-new-privileges:true
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Mount writable storage
+    read_only: true
+    volumes:
+      - "storage:/home/bot:rw"
+      - "tmp:/tmp:rw"
+
+volumes:
+  # Storage limits
+  storage:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=1g,uid=1000,gid=1000"
+  tmp:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=1g,uid=1000,gid=1000"
