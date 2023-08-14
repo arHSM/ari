@@ -14,7 +14,7 @@ intents.message_content = True
 
 class ShellBot(Bot):
     async def setup_hook(self) -> None:
-        await bot.load_extension(".cogs.shell", package="src")
+        await bot.load_extension(".cogs.shell", package="ari")
 
 
 bot = ShellBot(command_prefix=">", intents=intents)
