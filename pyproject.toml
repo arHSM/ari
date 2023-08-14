@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "ari"
+version = "0.1.0"
+description = "ARI ARI ARI ARI ARI ARI"
+authors = ["Han Seung Min - 한승민 <hanseungmin.ar@gmail.com>"]
+license = "PROPRIETARY AF"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+"discord.py" = "^2.3.2"
+python-dotenv = "^1.0.0"
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = "C0114,C0115,C0116"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
