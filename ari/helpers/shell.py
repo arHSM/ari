@@ -13,7 +13,6 @@ CONTAINER = "evalbot_sandbox"
 BASE_COMMAND = [
     "docker",
     "exec",
-    "-it",
     CONTAINER,
     "bash",
     "-c",
