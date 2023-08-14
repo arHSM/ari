@@ -112,7 +112,7 @@ class CommandPaginatorView(View):
             except HTTPException as exception:
                 if exception.status == 404:
                     self.message = None
-                raise  # ...?
+                raise
 
     def update_view(self, timedout: bool = False):
         self.button_start.disabled = self.button_back.disabled = (
@@ -126,6 +126,14 @@ class CommandPaginatorView(View):
             True if self.executor is None else self.executor.closed
         )
 
+    async def try_edit(self, interaction: Interaction):
+        try:
+            interaction.response.edit_message(**self.send_kwargs)
+        except HTTPException as exception:
+            if exception.status == 404:
+                self.message = None
+            raise
+
     async def interaction_check(self, interaction: Interaction, /):
         if interaction.user.id == self.ctx.author.id:
             return True
@@ -138,6 +146,7 @@ class CommandPaginatorView(View):
     async def on_timeout(self) -> None:
         if self.message:
             self.update_view(True)
+
             try:
                 await self.message.edit(**self.send_kwargs)
             except HTTPException:
@@ -148,11 +157,7 @@ class CommandPaginatorView(View):
         self.display_page = 0
 
         self.update_view()
-
-        try:
-            await interaction.response.edit_message(**self.send_kwargs)
-        except HTTPException:
-            pass
+        self.try_edit(interaction)
 
     @button(label="Back", style=ButtonStyle.blurple)
     async def button_back(self, interaction: Interaction, _: Button):
@@ -160,11 +165,7 @@ class CommandPaginatorView(View):
             self.display_page -= 1
 
         self.update_view()
-
-        try:
-            await interaction.response.edit_message(**self.send_kwargs)
-        except HTTPException:
-            pass
+        self.try_edit(interaction)
 
     @button(label="Forward", style=ButtonStyle.blurple)
     async def button_forward(self, interaction: Interaction, _: Button):
@@ -172,22 +173,14 @@ class CommandPaginatorView(View):
             self.display_page += 1
 
         self.update_view()
-
-        try:
-            await interaction.response.edit_message(**self.send_kwargs)
-        except HTTPException:
-            pass
+        self.try_edit(interaction)
 
     @button(label="≫", style=ButtonStyle.gray)
     async def button_end(self, interaction: Interaction, _: Button):
         self.display_page = None
 
         self.update_view()
-
-        try:
-            await interaction.response.edit_message(**self.send_kwargs)
-        except HTTPException:
-            pass
+        self.try_edit(interaction)
 
     @button(label="Kill", style=ButtonStyle.red, row=2)
     async def button_kill(self, interaction: Interaction, _: Button):
@@ -195,11 +188,7 @@ class CommandPaginatorView(View):
             self.executor.kill()
 
         self.update_view()
-
-        try:
-            await interaction.response.edit_message(**self.send_kwargs)
-        except HTTPException:
-            pass
+        self.try_edit(interaction)
 
     @button(label="Terminate", style=ButtonStyle.red, row=2)
     async def button_terminate(self, interaction: Interaction, _: Button):
@@ -207,8 +196,4 @@ class CommandPaginatorView(View):
             self.executor.terminate()
 
         self.update_view()
-
-        try:
-            await interaction.response.edit_message(**self.send_kwargs)
-        except HTTPException:
-            pass
+        self.try_edit(interaction)
