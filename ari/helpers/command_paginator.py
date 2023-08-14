@@ -49,7 +49,10 @@ class CommandPaginatorView(View):
 
     @property
     def send_kwargs(self):
-        return {"content": self.content, "view": self}
+        return {
+            "content": self.content,
+            "view": self,
+        }
 
     async def reply(self):
         self.update_view()
@@ -58,51 +61,46 @@ class CommandPaginatorView(View):
         return self.message
 
     async def add_line(self, line: str):
-        try:
-            self.paginator.add_line(line)
-        except RuntimeError:
-            # Line was longer than expected
+        # pylint: disable=W0212
+        true_max_size = (
+            self.paginator.max_size
+            - self.paginator._prefix_len
+            - self.paginator._suffix_len
+            - 2 * self.paginator._linesep_len
+        )
 
-            # pylint: disable=W0212
-            true_max_size = (
-                self.paginator.max_size
-                - self.paginator._prefix_len
-                - self.paginator._suffix_len
-                - 2 * self.paginator._linesep_len
-            )
+        start = 0
+        needle = 0
+        last_newline = -1
+        last_space = -1
 
-            start = 0
-            needle = 0
-            last_newline = -1
-            last_space = -1
+        while needle < len(line):
+            if needle - start >= true_max_size:
+                if last_newline != -1:
+                    self.paginator.add_line(line[start:last_newline])
+                    needle = last_newline + 1
+                    start = last_newline + 1
+                elif last_space != -1:
+                    self.paginator.add_line(line[start:last_space])
+                    needle = last_space + 1
+                    start = last_space
+                else:
+                    self.paginator.add_line(line[start:needle])
+                    start = needle
 
-            while needle < len(line):
-                if needle - start >= true_max_size:
-                    if last_newline != -1:
-                        self.paginator.add_line(line[start:last_newline])
-                        needle = last_newline + 1
-                        start = last_newline + 1
-                    elif last_space != -1:
-                        self.paginator.add_line(line[start:last_space])
-                        needle = last_space + 1
-                        start = last_space
-                    else:
-                        self.paginator.add_line(line[start:needle])
-                        start = needle
+                last_newline = -1
+                last_space = -1
 
-                    last_newline = -1
-                    last_space = -1
+            if line[needle] == "\n":
+                last_newline = needle
+            elif line[needle] == " ":
+                last_space = needle
 
-                if line[needle] == "\n":
-                    last_newline = needle
-                elif line[needle] == " ":
-                    last_space = needle
+            needle += 1
 
-                needle += 1
-
-            last_line = line[start:needle]
-            if last_line:
-                self.paginator.add_line(last_line)
+        last_line = line[start:needle]
+        if last_line:
+            self.paginator.add_line(last_line)
 
         if not self._has_page_set and self.message:
             self.update_view()
