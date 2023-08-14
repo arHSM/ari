@@ -157,7 +157,7 @@ class CommandPaginatorView(View):
         self.display_page = 0
 
         self.update_view()
-        self.try_edit(interaction)
+        await self.try_edit(interaction)
 
     @button(label="Back", style=ButtonStyle.blurple)
     async def button_back(self, interaction: Interaction, _: Button):
@@ -165,7 +165,7 @@ class CommandPaginatorView(View):
             self.display_page -= 1
 
         self.update_view()
-        self.try_edit(interaction)
+        await self.try_edit(interaction)
 
     @button(label="Forward", style=ButtonStyle.blurple)
     async def button_forward(self, interaction: Interaction, _: Button):
@@ -173,14 +173,14 @@ class CommandPaginatorView(View):
             self.display_page += 1
 
         self.update_view()
-        self.try_edit(interaction)
+        await self.try_edit(interaction)
 
     @button(label="≫", style=ButtonStyle.gray)
     async def button_end(self, interaction: Interaction, _: Button):
         self.display_page = None
 
         self.update_view()
-        self.try_edit(interaction)
+        await self.try_edit(interaction)
 
     @button(label="Kill", style=ButtonStyle.red, row=2)
     async def button_kill(self, interaction: Interaction, _: Button):
@@ -188,7 +188,7 @@ class CommandPaginatorView(View):
             self.executor.kill()
 
         self.update_view()
-        self.try_edit(interaction)
+        await self.try_edit(interaction)
 
     @button(label="Terminate", style=ButtonStyle.red, row=2)
     async def button_terminate(self, interaction: Interaction, _: Button):
@@ -196,4 +196,4 @@ class CommandPaginatorView(View):
             self.executor.terminate()
 
         self.update_view()
-        self.try_edit(interaction)
+        await self.try_edit(interaction)
