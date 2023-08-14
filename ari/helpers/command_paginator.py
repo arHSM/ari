@@ -128,7 +128,7 @@ class CommandPaginatorView(View):
 
     async def try_edit(self, interaction: Interaction):
         try:
-            interaction.response.edit_message(**self.send_kwargs)
+            await interaction.response.edit_message(**self.send_kwargs)
         except HTTPException as exception:
             if exception.status == 404:
                 self.message = None
