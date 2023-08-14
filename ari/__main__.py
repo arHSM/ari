@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 intents = Intents.none()
+intents.guilds = True
 intents.guild_messages = True
 intents.dm_messages = True
 intents.message_content = True
