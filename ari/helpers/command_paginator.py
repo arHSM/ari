@@ -33,10 +33,20 @@ class CommandPaginatorView(View):
 
     async def _debounce(self, coro: Coroutine[None, None, T]) -> T:
         if self._initial_edit:
-            await asyncio.sleep(self.DEBOUNCE_TIMEOUT)
+            try:
+                await asyncio.sleep(self.DEBOUNCE_TIMEOUT)
+            except asyncio.CancelledError:
+                # Suppress coro was not awaited error
+                coro.throw(asyncio.CancelledError)
         else:
             self._initial_edit = True
-        return await coro
+
+        try:
+            return await coro
+        except HTTPException as exception:
+            if exception.status == 404:
+                self.message = None
+            raise
 
     @property
     def total_pages(self):
@@ -124,19 +134,11 @@ class CommandPaginatorView(View):
         if not self._has_page_set and self.message:
             self.update_view()
 
-            try:
-                if self._edit is not None and not self._edit.done():
-                    self._edit.cancel()
-                self._edit = self.ctx.bot.loop.create_task(
-                    self._debounce(self.message.edit(**self.send_kwargs))
-                )
-                await self._edit
-            except asyncio.CancelledError:
-                pass
-            except HTTPException as exception:
-                if exception.status == 404:
-                    self.message = None
-                raise
+            if self._edit is not None and not self._edit.done():
+                self._edit.cancel()
+            self._edit = asyncio.create_task(
+                self._debounce(self.message.edit(**self.send_kwargs))
+            )
 
     def update_view(self, timedout: bool = False):
         self.button_start.disabled = self.button_back.disabled = (
