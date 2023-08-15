@@ -1,13 +1,23 @@
-from discord.enums import ButtonStyle
+from __future__ import annotations
+
+import asyncio
+from typing import TYPE_CHECKING, Coroutine, Final, TypeVar
+
+from discord import ButtonStyle, HTTPException
 from discord.ext.commands import Context, Paginator
-from discord.http import HTTPException
-from discord.interactions import Interaction
-from discord.ui import Button, View, button
+from discord.ui import View, button
 
 from .shell import ShellExecutor
 
+if TYPE_CHECKING:
+    from discord import Interaction, Message
+    from discord.ui import Button
+
+T = TypeVar("T")
 
 class CommandPaginatorView(View):
+    DEBOUNCE_TIMEOUT: Final[int] = 1
+
     def __init__(self, ctx: Context, *, timeout: float | None = 180):
         super().__init__(timeout=timeout)
 
@@ -18,6 +28,15 @@ class CommandPaginatorView(View):
 
         self.message = None
         self.executor: ShellExecutor | None = None
+        self._edit: asyncio.Task[Message] | None = None
+        self._initial_edit: bool = False
+
+    async def _debounce(self, coro: Coroutine[None, None, T]) -> T:
+        if self._initial_edit:
+            await asyncio.sleep(self.DEBOUNCE_TIMEOUT)
+        else:
+            self._initial_edit = True
+        return await coro
 
     @property
     def total_pages(self):
@@ -106,7 +125,14 @@ class CommandPaginatorView(View):
             self.update_view()
 
             try:
-                await self.message.edit(**self.send_kwargs)
+                if self._edit is not None and not self._edit.done():
+                    self._edit.cancel()
+                self._edit = self.ctx.bot.loop.create_task(
+                    self._debounce(self.message.edit(**self.send_kwargs))
+                )
+                await self._edit
+            except asyncio.CancelledError:
+                pass
             except HTTPException as exception:
                 if exception.status == 404:
                     self.message = None
