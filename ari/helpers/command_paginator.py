@@ -93,9 +93,9 @@ class CommandPaginatorView(View):
         # pylint: disable=W0212
         true_max_size = (
             self.paginator.max_size
-            - self.paginator._prefix_len
+            - self.paginator._count
             - self.paginator._suffix_len
-            - 2 * self.paginator._linesep_len
+            - self.paginator._linesep_len
         )
 
         start = 0
