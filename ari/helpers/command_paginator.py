@@ -98,6 +98,15 @@ class CommandPaginatorView(View):
             - self.paginator._linesep_len
         )
 
+        def paginator_add_line(line: str):
+            self.paginator.add_line(line)
+            return (
+                self.paginator.max_size
+                - self.paginator._count
+                - self.paginator._suffix_len
+                - self.paginator._linesep_len
+            )
+
         start = 0
         needle = 0
         last_newline = -1
@@ -106,15 +115,15 @@ class CommandPaginatorView(View):
         while needle < len(line):
             if needle - start >= true_max_size:
                 if last_newline != -1:
-                    self.paginator.add_line(line[start:last_newline])
+                    true_max_size = paginator_add_line(line[start:last_newline])
                     needle = last_newline + 1
                     start = last_newline + 1
                 elif last_space != -1:
-                    self.paginator.add_line(line[start:last_space])
+                    true_max_size = paginator_add_line(line[start:last_space])
                     needle = last_space + 1
                     start = last_space
                 else:
-                    self.paginator.add_line(line[start:needle])
+                    true_max_size = paginator_add_line(line[start:needle])
                     start = needle
 
                 last_newline = -1
@@ -129,7 +138,7 @@ class CommandPaginatorView(View):
 
         last_line = line[start:needle]
         if last_line:
-            self.paginator.add_line(last_line)
+            true_max_size = paginator_add_line(last_line)
 
         if not self._has_page_set and self.message:
             self.update_view()
